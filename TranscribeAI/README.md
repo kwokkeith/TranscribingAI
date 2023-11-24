@@ -1,8 +1,6 @@
 # Real Time Whisper Transcription
 
-![Demo gif](demo.gif)
-
-This is a demo of real time speech to text with OpenAI's Whisper model. It works by constantly recording audio in a thread and concatenating the raw bytes over multiple recordings.
+This is a real time speech to text with OpenAI's Whisper model. It works by constantly recording audio in a thread and concatenating the raw bytes over multiple recordings.
 
 To install dependencies simply run
 ```
