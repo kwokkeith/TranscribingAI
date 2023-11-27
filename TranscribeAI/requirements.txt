@@ -3,3 +3,6 @@ SpeechRecognition
 --extra-index-url https://download.pytorch.org/whl/cu116
 torch
 git+https://github.com/openai/whisper.git
+llama-cpp-python
+langchain
+https://huggingface.co/TheBloke/Mistral-7B-OpenOrca-GGUF/resolve/main/mistral-7b-openorca.Q5_K_M.gguf

@@ -39,6 +39,8 @@ def main():
         parser.add_argument("--default_microphone", default='pulse',
                             help="Default microphone name for SpeechRecognition. "
                                 "Run this with 'list' to view available Microphones.", type=str)
+    parser.add_argument("--output", action="store_true",
+                        help="To indicate if an output txt should be produced")
     args = parser.parse_args()
 
     # The last time a recording was retrieved from the queue.
@@ -97,6 +99,10 @@ def main():
     with source:
         recorder.adjust_for_ambient_noise(source)
 
+    # To open txt file for writting and recording transcribed message
+    f = open("transcription-output.txt", "w+")
+
+    
     def record_callback(_, audio:sr.AudioData) -> None:
         """
         Threaded callback function to receive audio data when recordings finish.
@@ -114,13 +120,8 @@ def main():
     print("Whisper Model loaded.\n")
 
     # Load Mistral-7b-openorca for translation
-    template = """You are an translator that will convert a transribed text to English. 
-    The text to be translated is enclosed in triple backticks and you should just output the main translated text, do not include anything else and ignore all English.
-    If there is no text, then output nothing.
-    Translate this ```{original_text}``` to English.
-    
-    Remember to just output the translated text, be as non-verbose as possible!
-    
+    template = """
+    Translate this chinese text {original_text} to English, output only the English translated text and skip any explanations.
     """
 
     prompt_Template = PromptTemplate(template=template, input_variables=["original_text"])
@@ -174,6 +175,8 @@ def main():
                 # Translate transcription using mistral-7b-openorca model
                 if args.non_english:
                     original_text = result['text']
+                    print("---Next Phrase---")
+                    print(f"Text: {original_text}")
                     prompt = prompt_Template.format(original_text=result['text'].strip())
                     text = llm(prompt)
                 else:
@@ -183,8 +186,6 @@ def main():
                 # Otherwise edit the existing one.
                 if phrase_complete:
                     if args.non_english:
-                        transcription.append(f"---Next Phrase---")
-                        transcription.append(f"Text: {original_text}")
                         transcription.append(f"Translated: {text}")
                     else:
                         transcription.append(text)
@@ -201,6 +202,10 @@ def main():
                 # Infinite loops are bad for processors, must sleep.
                 sleep(0.25)
         except KeyboardInterrupt:
+            # write to file if output is true
+            if args.output:
+                with open("Transcription-output.txt", "w+") as f:
+                    f.write("\n".join(transcription))
             break
 
     print("\n\nTranscription:")
