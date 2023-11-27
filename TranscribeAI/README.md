@@ -11,6 +11,7 @@ in an environment of your choosing.
 Whisper also requires the command-line tool [`ffmpeg`](https://ffmpeg.org/) to be installed on your system, which is available from most package managers:
 
 For non-english translation, this service uses either Mistral-7b-openorca (commented) or Meta's seamlessM4T 2023 (current)
+Please ensure that the model has been installed, refer to each model's respective links for installation requirements.
 ```
 # on Ubuntu or Debian
 sudo apt update && sudo apt install ffmpeg
