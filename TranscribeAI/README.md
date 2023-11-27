@@ -10,6 +10,7 @@ in an environment of your choosing.
 
 Whisper also requires the command-line tool [`ffmpeg`](https://ffmpeg.org/) to be installed on your system, which is available from most package managers:
 
+For non-english translation, this service uses either Mistral-7b-openorca (commented) or Meta's seamlessM4T 2023 (current)
 ```
 # on Ubuntu or Debian
 sudo apt update && sudo apt install ffmpeg
@@ -28,5 +29,14 @@ scoop install ffmpeg
 ```
 
 For more information on Whisper please see https://github.com/openai/whisper
+For more information on Mistral-7b-openorca please see https://huggingface.co/Open-Orca/Mistral-7b-openorca
+For more information on seamlessM4T please see https://github.com/facebookresearch/seamless_communication
+
+@article{seamlessm4t2023,
+  title={"SeamlessM4T‚ÄîMassively Multilingual \& Multimodal Machine Translation"},
+  author={{Seamless Communication}, Lo\"{i}c Barrault, Yu-An Chung, Mariano Cora Meglioli, David Dale, Ning Dong, Paul-Ambroise Duquenne, Hady Elsahar, Hongyu Gong, Kevin Heffernan, John Hoffman, Christopher Klaiber, Pengwei Li, Daniel Licht, Jean Maillard, Alice Rakotoarison, Kaushik Ram Sadagopan, Guillaume Wenzek, Ethan Ye,  Bapi Akula, Peng-Jen Chen, Naji El Hachem, Brian Ellis, Gabriel Mejia Gonzalez, Justin Haaheim, Prangthip Hansanti, Russ Howes, Bernie Huang, Min-Jae Hwang, Hirofumi Inaguma, Somya Jain, Elahe Kalbassi, Amanda Kallet, Ilia Kulikov, Janice Lam, Daniel Li, Xutai Ma, Ruslan Mavlyutov, Benjamin Peloquin, Mohamed Ramadan, Abinesh Ramakrishnan, Anna Sun, Kevin Tran, Tuan Tran, Igor Tufanov, Vish Vogeti, Carleigh Wood, Yilin Yang, Bokai Yu, Pierre Andrews, Can Balioglu, Marta R. Costa-juss\`{a} \footnotemark[3], Onur \,{C}elebi,Maha Elbayad,Cynthia Gao, Francisco Guzm\'an, Justine Kao, Ann Lee, Alexandre Mourachko, Juan Pino, Sravya Popuri, Christophe Ropers, Safiyyah Saleem, Holger Schwenk, Paden Tomasello, Changhan Wang, Jeff Wang, Skyler Wang},
+  journal={ArXiv},
+  year={2023}
+}
 
 The code in this repository is public domain.

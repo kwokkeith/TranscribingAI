@@ -1,5 +1,15 @@
 #! python3.7
 
+"""
+@article{seamlessm4t2023,
+  title={"SeamlessM4T—Massively Multilingual \& Multimodal Machine Translation"},
+  author={{Seamless Communication}, Lo\"{i}c Barrault, Yu-An Chung, Mariano Cora Meglioli, David Dale, Ning Dong, Paul-Ambroise Duquenne, Hady Elsahar, Hongyu Gong, Kevin Heffernan, John Hoffman, Christopher Klaiber, Pengwei Li, Daniel Licht, Jean Maillard, Alice Rakotoarison, Kaushik Ram Sadagopan, Guillaume Wenzek, Ethan Ye,  Bapi Akula, Peng-Jen Chen, Naji El Hachem, Brian Ellis, Gabriel Mejia Gonzalez, Justin Haaheim, Prangthip Hansanti, Russ Howes, Bernie Huang, Min-Jae Hwang, Hirofumi Inaguma, Somya Jain, Elahe Kalbassi, Amanda Kallet, Ilia Kulikov, Janice Lam, Daniel Li, Xutai Ma, Ruslan Mavlyutov, Benjamin Peloquin, Mohamed Ramadan, Abinesh Ramakrishnan, Anna Sun, Kevin Tran, Tuan Tran, Igor Tufanov, Vish Vogeti, Carleigh Wood, Yilin Yang, Bokai Yu, Pierre Andrews, Can Balioglu, Marta R. Costa-juss\`{a} \footnotemark[3], Onur \,{C}elebi,Maha Elbayad,Cynthia Gao, Francisco Guzm\'an, Justine Kao, Ann Lee, Alexandre Mourachko, Juan Pino, Sravya Popuri, Christophe Ropers, Safiyyah Saleem, Holger Schwenk, Paden Tomasello, Changhan Wang, Jeff Wang, Skyler Wang},
+  journal={ArXiv},
+  year={2023}
+}
+"""
+
+
 import argparse
 import io
 import os
@@ -19,13 +29,14 @@ from langchain.chains import LLMChain
 from langchain.llms import LlamaCpp
 from langchain.prompts import PromptTemplate
 
+from seamless_communication.models.inference import Translator
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default="medium", help="Model to use",
+    parser.add_argument("--model", default="large", help="Model to use",
                         choices=["tiny", "base", "small", "medium", "large"])
     parser.add_argument("--non_english", action='store_true',
-                        help="Don't use the english model.")
+                        help="Indicates if non-english model should be used")
     parser.add_argument("--energy_threshold", default=1000,
                         help="Energy level for mic to detect.", type=int)
     parser.add_argument("--record_timeout", default=2,
@@ -117,30 +128,34 @@ def main():
     recorder.listen_in_background(source, record_callback, phrase_time_limit=record_timeout)
 
     # Cue the user Whisper model is ready.
-    print("Whisper Model loaded.\n")
+    print("Whisper Model loaded.")
 
-    # Load Mistral-7b-openorca for translation
-    template = """
-    Translate this chinese text {original_text} to English, output only the English translated text and skip any explanations.
-    """
+    ## using Mistral-7b-openorca translator
+    ## Load Mistral-7b-openorca for translation
+    #template = """Translate the Chinese text that is delimited by triple backticks into English. text: ```{original_text}```"""
+#
+    #prompt_Template = PromptTemplate(template=template, input_variables=["original_text"])
+#
+    ## Callbacks support token-wise streaming
+    #callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
+    #
+    #llm = LlamaCpp(
+        #model_path="./Models/mistral-7b-openorca.Q5_K_M.gguf",
+        #temperature=0,
+        #max_tokens=2000,
+        #n_ctx=8000,
+        #top_p=1,
+        #callback_manager=callback_manager,
+        #verbose=False,  # Verbose is required to pass to the callback manager
+    #)
+#
+    ## Cue the user Mistral-7b-openorca model is ready.
+    #print("Mistral-7b-openorca Model loaded.\n")
 
-    prompt_Template = PromptTemplate(template=template, input_variables=["original_text"])
-
-    # Callbacks support token-wise streaming
-    callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
-    
-    llm = LlamaCpp(
-        model_path="./Models/mistral-7b-openorca.Q5_K_M.gguf",
-        temperature=0.25,
-        max_tokens=2000,
-        n_ctx=8000,
-        top_p=1,
-        callback_manager=callback_manager,
-        verbose=False,  # Verbose is required to pass to the callback manager
-    )
-
-    # Cue the user Mistral-7b-openorca model is ready.
-    print("Mistral-7b-openorca Model loaded.\n")
+    # Using SeamlessM4T translator
+    # Initialize a Translator object with a multitask model, vocoder on the GPU.
+    translator = Translator("seamlessM4T_large", vocoder_name_or_card="vocoder_36langs", device=torch.device("cpu"))
+    print("seamlessM4T Model loaded.\n")
 
     while True:
         try:
@@ -175,10 +190,9 @@ def main():
                 # Translate transcription using mistral-7b-openorca model
                 if args.non_english:
                     original_text = result['text']
-                    print("---Next Phrase---")
-                    print(f"Text: {original_text}")
-                    prompt = prompt_Template.format(original_text=result['text'].strip())
-                    text = llm(prompt)
+                    text,_,_ = translator.predict(original_text.strip(), "t2tt", "eng", src_lang="cmn")
+                    #prompt = prompt_Template.format(original_text=result['text'].strip())
+                    #text = llm(prompt)
                 else:
                     text = result['text'].strip()
 
@@ -186,6 +200,8 @@ def main():
                 # Otherwise edit the existing one.
                 if phrase_complete:
                     if args.non_english:
+                        transcription.append(f"\n-------Next Phrase-------")
+                        transcription.append(f"Text: {original_text}")
                         transcription.append(f"Translated: {text}")
                     else:
                         transcription.append(text)
