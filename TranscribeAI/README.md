@@ -29,9 +29,9 @@ choco install ffmpeg
 scoop install ffmpeg
 ```
 
-For more information on Whisper please see https://github.com/openai/whisper
-For more information on Mistral-7b-openorca please see https://huggingface.co/Open-Orca/Mistral-7b-openorca
-For more information on SeamlessM4T please see https://github.com/facebookresearch/seamless_communication
+For more information on Whisper please see https://github.com/openai/whisper  
+For more information on Mistral-7b-openorca please see https://huggingface.co/Open-Orca/Mistral-7b-openorca  
+For more information on SeamlessM4T please see https://github.com/facebookresearch/seamless_communication  
 
 SeamlessM4T Credits:  
 **Title:** "SeamlessM4T—Massively Multilingual & Multimodal Machine Translation"  
