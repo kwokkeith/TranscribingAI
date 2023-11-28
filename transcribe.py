@@ -191,6 +191,7 @@ def main():
                 if args.non_english:
                     original_text = result['text']
                     text,_,_ = translator.predict(original_text.strip(), "t2tt", "eng", src_lang="cmn")
+                    text = str(text)
                     #prompt = prompt_Template.format(original_text=result['text'].strip())
                     #text = llm(prompt)
                 else:
