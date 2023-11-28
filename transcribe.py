@@ -59,7 +59,14 @@ def main():
                         help="To indicate if an output txt should be produced")
     parser.add_argument("--translationModel", default="helsinki",
                         help="helsinki (lightweight model) OR seamless-cpu (heavier model) OR seamless-gpu (heavier model)")
+    parser.add_argument("--cores", default="8",
+                        help="number of cores to run models")
     args = parser.parse_args()
+
+
+    # Torch configuration for number of threads
+    torch.set_num_threads(args.cores)
+
 
     # The last time a recording was retrieved from the queue.
     phrase_time = None
