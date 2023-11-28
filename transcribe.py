@@ -123,10 +123,6 @@ def main():
 
     with source:
         recorder.adjust_for_ambient_noise(source)
-
-    # To open txt file for writting and recording transcribed message
-    f = open("transcription-output.txt", "w+")
-
     
     def record_callback(_, audio:sr.AudioData) -> None:
         """
