@@ -41,5 +41,13 @@ SeamlessM4T Credits:
 
 **Year:** 2023
 
+Helsinki Credits:  
+@InProceedings{TiedemannThottingal:EAMT2020,
+  author = "Jörg Tiedemann and Santhosh Thottingal",
+  title = "OPUS-MT — Building open translation services for the World",
+  booktitle = "Proceedings of the 22nd Annual Conference of the European Association for Machine Translation (EAMT)",
+  year = "2020",
+  address = "Lisbon, Portugal"
+}
 
 The code in this repository is public domain.
