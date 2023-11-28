@@ -29,11 +29,16 @@ from langchain.chains import LLMChain
 from langchain.llms import LlamaCpp
 from langchain.prompts import PromptTemplate
 
+# For seamlessM4T
 from seamless_communication.models.inference import Translator
+
+# For Helsinki-NLP
+from transformers import MarianMTModel, MarianTokenizer
+
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default="large", help="Model to use",
+    parser.add_argument("--model", default="large", help="Transcription Model to use",
                         choices=["tiny", "base", "small", "medium", "large"])
     parser.add_argument("--non_english", action='store_true',
                         help="Indicates if non-english model should be used")
@@ -52,6 +57,8 @@ def main():
                                 "Run this with 'list' to view available Microphones.", type=str)
     parser.add_argument("--output", action="store_true",
                         help="To indicate if an output txt should be produced")
+    parser.add_argument("--translationModel", default="helsinki",
+                        help="helsinki (lightweight model) OR seamless-cpu (heavier model) OR seamless-gpu (heavier model)")
     args = parser.parse_args()
 
     # The last time a recording was retrieved from the queue.
@@ -130,12 +137,11 @@ def main():
     # Cue the user Whisper model is ready.
     print("Whisper Model loaded.")
 
+    # *********************************************************#
     ## using Mistral-7b-openorca translator
     ## Load Mistral-7b-openorca for translation
     #template = """Translate the Chinese text that is delimited by triple backticks into English. text: ```{original_text}```"""
-#
     #prompt_Template = PromptTemplate(template=template, input_variables=["original_text"])
-#
     ## Callbacks support token-wise streaming
     #callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
     #
@@ -148,14 +154,28 @@ def main():
         #callback_manager=callback_manager,
         #verbose=False,  # Verbose is required to pass to the callback manager
     #)
-#
-    ## Cue the user Mistral-7b-openorca model is ready.
-    #print("Mistral-7b-openorca Model loaded.\n")
 
-    # Using SeamlessM4T translator
-    # Initialize a Translator object with a multitask model, vocoder on the GPU.
-    translator = Translator("seamlessM4T_large", vocoder_name_or_card="vocoder_36langs", device=torch.device("cpu"))
-    print("seamlessM4T Model loaded.\n")
+    ### Cue the user Mistral-7b-openorca model is ready.
+    ##print("Mistral-7b-openorca Model loaded.\n")
+
+    # *********************************************************#
+    if args.translationModel == "seamless-cpu":
+        # Using SeamlessM4T translator
+        # Initialize a Translator object with a multitask model, vocoder on the GPU.
+        translator = Translator("seamlessM4T_large", vocoder_name_or_card="vocoder_36langs", device=torch.device("cpu"))
+        print("seamlessM4T Model (CPU) loaded.\n")
+    elif args.translationModel == "seamless-gpu":
+        # Using SeamlessM4T translator
+        # Initialize a Translator object with a multitask model, vocoder on the GPU.
+        translator = Translator("seamlessM4T_large", vocoder_name_or_card="vocoder_36langs", device=torch.device("cuda:0"))
+        print("seamlessM4T Model (GPU) loaded.\n")
+    # *********************************************************#
+    # Using Helsinki-NLP model
+    elif args.translationModel == "helsinki":
+        model_name = "Helsinki-NLP/opus-mt-zh-en"
+        tokenizer = MarianTokenizer.from_pretrained(model_name)
+        model = MarianMTModel.from_pretrained(model_name)
+        print("Helsinki-NLP model loaded\n")
 
     while True:
         try:
@@ -189,11 +209,22 @@ def main():
 
                 # Translate transcription using mistral-7b-openorca model
                 if args.non_english:
-                    original_text = result['text']
-                    text,_,_ = translator.predict(original_text.strip(), "t2tt", "eng", src_lang="cmn")
-                    text = str(text)
+                    if args.translationModel == "seamless-gpu" or args.translationModel == "seamless-cpu":
+                        # SeamlessM4T
+                        original_text = result['text']
+                        text,_,_ = translator.predict(original_text.strip(), "t2tt", "eng", src_lang="cmn")
+                        text = str(text)
+
+                    ## Mistral-7b-openorca
                     #prompt = prompt_Template.format(original_text=result['text'].strip())
                     #text = llm(prompt)
+
+                    elif args.translationModel == "helsinki":
+                        # Helsinki-NLP
+                        original_text = result['text'].strip()
+                        translated = model.generate(**tokenizer(original_text, return_tensors="pt", padding=True))
+                        text = [tokenizer.decode(t, skip_special_tokens=True) for t in translated]
+                        text = " ".join(text)
                 else:
                     text = result['text'].strip()
 
