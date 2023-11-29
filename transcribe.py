@@ -47,7 +47,9 @@ def main():
     parser.add_argument("--output", action="store_true",
                         help="To indicate if an output txt should be produced")
     parser.add_argument("--translationModel", default="helsinki",
-                        help="helsinki (lightweight model) OR seamless-cpu (heavier model) OR seamless-gpu (heavier model)")
+                        help="helsinki (lightweight model) OR seamless")
+    parser.add_argument("--gpu", default="false",
+                        help="Whether gpu should be used")
     parser.add_argument("--cores", default="8",
                         help="number of cores to run models")
     args = parser.parse_args()
@@ -56,7 +58,12 @@ def main():
     # Torch configuration for number of threads
     torch.set_num_threads(args.cores)
 
-
+    # Device
+    if args.gpu:
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    else:
+        device = torch.device("cpu")
+    
     # The last time a recording was retrieved from the queue.
     phrase_time = None
     # Current raw audio bytes.
@@ -151,16 +158,11 @@ def main():
     ##print("Mistral-7b-openorca Model loaded.\n")
 
     # *********************************************************#
-    if args.translationModel == "seamless-cpu":
+    if args.translationModel == "seamless":
         # Using SeamlessM4T translator
         # Initialize a Translator object with a multitask model, vocoder on the GPU.
-        translator = Translator("seamlessM4T_large", vocoder_name_or_card="vocoder_36langs", device=torch.device("cpu"))
-        print("seamlessM4T Model (CPU) loaded.\n")
-    elif args.translationModel == "seamless-gpu":
-        # Using SeamlessM4T translator
-        # Initialize a Translator object with a multitask model, vocoder on the GPU.
-        translator = Translator("seamlessM4T_large", vocoder_name_or_card="vocoder_36langs", device=torch.device("cuda:0"))
-        print("seamlessM4T Model (GPU) loaded.\n")
+        translator = Translator("seamlessM4T_large", vocoder_name_or_card="vocoder_36langs", device=device)
+        print("seamlessM4T Model loaded.\n")
     # *********************************************************#
     # Using Helsinki-NLP model
     elif args.translationModel == "helsinki":
