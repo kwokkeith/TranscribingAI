@@ -48,7 +48,7 @@ def main():
                         help="To indicate if an output txt should be produced")
     parser.add_argument("--translationModel", default="helsinki",
                         help="helsinki (lightweight model) OR seamless")
-    parser.add_argument("--gpu", default="false",
+    parser.add_argument("--gpu", action='store_true',
                         help="Whether gpu should be used")
     parser.add_argument("--cores", default="8",
                         help="number of cores to run models")
@@ -56,7 +56,7 @@ def main():
 
 
     # Torch configuration for number of threads
-    torch.set_num_threads(args.cores)
+    torch.set_num_threads(int(args.cores))
 
     # Device
     if args.gpu:
@@ -203,7 +203,7 @@ def main():
 
                 # Translate transcription using mistral-7b-openorca model
                 if args.non_english:
-                    if args.translationModel == "seamless-gpu" or args.translationModel == "seamless-cpu":
+                    if args.translationModel == "seamles":
                         # SeamlessM4T
                         original_text = result['text']
                         text,_,_ = translator.predict(original_text.strip(), "t2tt", "eng", src_lang="cmn")
